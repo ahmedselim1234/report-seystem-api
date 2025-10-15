@@ -20,6 +20,11 @@ router
   .route("/send-support/:supportId")
   .post(requireAuth, roles.allowedTo("control"), supportController.sendSupport);
 router
+  .route("/delete-support/:supportId")
+  .delete(requireAuth, roles.allowedTo("control"), supportController.deleteSupport);
+
+
+router
   .route("/get-supports")
   .get(requireAuth, roles.allowedTo("control"), supportController.getAllSupports);
 

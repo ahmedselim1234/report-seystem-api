@@ -31,15 +31,13 @@ exports.login = asyncHandler(async (req, res, next) => {
     const control = await User.findOne({ name: name, password: password });
 
     if (!control) {
-      return res.status(404).json({ message: "control not found " });
+      return res.status(404).json({ message: "غير موجود " });
     }
 
     const accessToken = generateToken.accessToken(control);
     return res.json({ accessToken, control });
   }
 });
-
-
 
 exports.logout = (req, res, next) => {
   res.clearCookie("accessToken", {
@@ -48,5 +46,3 @@ exports.logout = (req, res, next) => {
   });
   res.json({ message: "logged out" });
 };
-
-

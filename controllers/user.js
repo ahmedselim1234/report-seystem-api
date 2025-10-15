@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Report = require("../models/Report");
 
 //access by   control ------------------------------------
+//ok
 exports.createValunteer = asyncHandler(async (req, res, next) => {
   const { name, identityNumber, phone, birthDate, bloodType, region } =
     req.body;
@@ -29,6 +30,7 @@ exports.createValunteer = asyncHandler(async (req, res, next) => {
   return res.status(201).json({ data: user });
 });
 
+//ok
 exports.updateValunteer = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   const { name, identityNumber, phone } = req.body;
@@ -48,6 +50,47 @@ exports.updateValunteer = asyncHandler(async (req, res, next) => {
     .json({ message: "تم التعديل بنجاح ", data: valunteer });
 });
 
+
+//ok
+exports.getAllValunteersForExport = asyncHandler(async (req, res) => {
+  const valunteers = await User.find({ role: "valunteer" })
+    .select("-password -__v");
+
+  res.status(200).json({
+    total: valunteers.length,
+    valunteers,
+  });
+});
+
+//ok
+exports.getAllValunteers = asyncHandler(async (req, res, next) => {
+  const page = parseInt(req.query.page) || 1;   
+  const limit = parseInt(req.query.limit) || 10; 
+  const skip = (page - 1) * limit;               
+
+  // count total volunteers
+  const total = await User.countDocuments({ role: "valunteer" });
+
+  // get paginated volunteers
+  const valunteers = await User.find({ role: "valunteer" })
+    .skip(skip)
+    .limit(limit);
+
+  if (!valunteers.length) {
+    return res.status(404).json({ message: "لا يوجد متطوعين" });
+  }
+
+  // send response
+  return res.status(200).json({
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+    valunteers,
+  });
+});
+
+//ok
 exports.deleteValunteer = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
@@ -64,11 +107,6 @@ exports.deleteValunteer = asyncHandler(async (req, res, next) => {
   });
 });
 
-exports.getAllValunteers = asyncHandler(async (req, res, next) => {
-  const vaunteers = await User.find({ role: "valunteer" });
-  if (!vaunteers) return res.status(404).json({ message: "لا يوجد متطوعين " });
-  return res.status(200).json({ vaunteers });
-});
 
 exports.createControl = asyncHandler(async (req, res, next) => {
   const { name, password, identityNumber } = req.body;
@@ -117,6 +155,8 @@ exports.getSpecificValunteer = asyncHandler(async (req, res, next) => {
 });
 
 //access by   valunteer ------------------------------------
+
+//ok
 exports.getValunteerData = asyncHandler(async (req, res, next) => {
   try {
     const id = req.user.id;
@@ -142,6 +182,7 @@ exports.getValunteerData = asyncHandler(async (req, res, next) => {
   }
 });
 
+//ok
 exports.lastAchievements = asyncHandler(async (req, res, next) => {
   const id = req.user.id;
 

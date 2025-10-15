@@ -62,11 +62,11 @@ router
 
 //for valunteer
 router
-  .route("/get-sured-reports")
+  .route("/get-avalable-reports")
   .get(
     requireAuth,
     roles.allowedTo("valunteer"),
-    reportController.getSuredReports
+    reportController.getAvalableReorts
   );
 
 router

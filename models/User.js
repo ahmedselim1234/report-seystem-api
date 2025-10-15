@@ -41,7 +41,7 @@ const userSchema = new mongoose.Schema(
     currentMonth: { type: Number, default: new Date().getMonth() + 1 },
     currentYear: { type: Number, default: new Date().getFullYear() },
 
-    bloodTypebirthDate: {
+    birthDate: {
       type: Date,
     },
 

@@ -7,13 +7,15 @@ exports.createValunteer = [
     .notEmpty()
     .withMessage("name required")
     .isLength({ min: 3 })
-    .withMessage("too short")
+    .withMessage(" يجب الا يقل الاسم عن ثلاثه احرف")
     .isLength({ max: 32 })
-    .withMessage("too long"),
+    .withMessage("الاسم طويل جدا"),
 
   check("identityNumber")
     .notEmpty()
     .withMessage("identityNumber required!")
+    .isNumeric()
+    .withMessage("رقم الهوية يجب أن يكون رقمًا صحيحًا فقط!")
     .isLength({ min: 10 })
     .withMessage("رقم هوية غير صالح")
     .isLength({ max: 10 })
@@ -33,7 +35,7 @@ exports.createValunteer = [
     .notEmpty()
     .withMessage("phone required!")
     .isMobilePhone(["ar-SA"])
-    .withMessage(" enter valid phone "),
+    .withMessage(" ادخل رقم هاتف صالح"),
 
   check("region").notEmpty().withMessage("region required!"),
 
@@ -57,9 +59,9 @@ exports.updateValunteer = [
   check("name")
     .optional()
     .isLength({ min: 3 })
-    .withMessage("too short")
+    .withMessage("يجب الا يقل الاسم عن ثلاثه احرف")
     .isLength({ max: 32 })
-    .withMessage("too long"),
+    .withMessage("الاسم طويل جدا"),
 
   check("identityNumber")
     .optional()
@@ -67,14 +69,14 @@ exports.updateValunteer = [
     .withMessage("رقم هوية غير صالح")
     .isLength({ max: 10 })
     .withMessage("رقم هوية غير صالح")
-    .custom(async (value) => {
-      const existingUser = await User.findOne({ identityNumber: value });
-      if (existingUser) {
-        throw new Error("رقم الهويه موجود بالفعل ");
-      }
-      return true;
-    }),
-
+    // .custom(async (value) => {
+    //   const existingUser = await User.findOne({ identityNumber: value });
+    //   if (existingUser) {
+    //     throw new Error("رقم الهويه موجود بالفعل ");
+    //   }
+    //   return true;
+    // }),
+,
   check("bloodType").optional(),
 
   check("phone")

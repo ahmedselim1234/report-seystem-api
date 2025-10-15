@@ -35,35 +35,42 @@ router
 router
   .route("/create-control")
   .post(requireAuth, roles.allowedTo("control"), userController.createControl);
-  //get
-  
-  router
-    .route("/valunteers")
-    .get(
-      requireAuth,
-      roles.allowedTo("control"),
-      userController.getAllValunteers
-    );
-  router
-    .route("/valunteer-data")
-    .get(
-      requireAuth,
-      roles.allowedTo("valunteer"),
-      userController.getValunteerData
-    );
-  router
-    .route("/get-valunteer/:id")
-    .get(
-      requireAuth,
-      roles.allowedTo("control"),
-      userController.getSpecificValunteer
-    );
-  router
-    .route("/last-achievements")
-    .get(
-      requireAuth,
-      roles.allowedTo("valunteer"),
-      userController.lastAchievements
-    );
+//get
+
+router
+  .route("/valunteers")
+  .get(
+    requireAuth,
+    roles.allowedTo("control"),
+    userController.getAllValunteers
+  );
+router
+  .route("/valunteer-data")
+  .get(
+    requireAuth,
+    roles.allowedTo("valunteer"),
+    userController.getValunteerData
+  );
+router
+  .route("/get-valunteer/:id")
+  .get(
+    requireAuth,
+    roles.allowedTo("control"),
+    userController.getSpecificValunteer
+  );
+router
+  .route("/last-achievements")
+  .get(
+    requireAuth,
+    roles.allowedTo("valunteer"),
+    userController.lastAchievements
+  );
+
+router.get(
+  "/export-excel",
+  requireAuth,
+  roles.allowedTo("control"),
+  userController.getAllValunteersForExport
+);
 
 module.exports = router;

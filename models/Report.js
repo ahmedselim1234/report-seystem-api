@@ -39,7 +39,7 @@ const reportSchema = new mongoose.Schema(
 
     image: { type: String },
 
-    locaion: { type: String, required: true },
+    location: { type: String, required: true },
 
     reason: { type: String },
 
@@ -69,17 +69,27 @@ reportSchema.pre("save", async function (next) {
   next();
 });
 
+// const setImageUrl = (doc) => {
+//   if (doc.image) {
+//     const imageUrl = `${process.env.BASE_URL}/report/${doc.image}`;
+//     doc.image = imageUrl;
+//   }
+// };
+// reportSchema.post("init", (doc) => {
+//   setImageUrl(doc);
+// });
+// reportSchema.post("save", (doc) => {
+//   setImageUrl(doc);
+// });
+
 const setImageUrl = (doc) => {
-  if (doc.image) {
-    const imageUrl = `${process.env.BASE_URL}/report/${doc.image}`;
-    doc.image = imageUrl;
+  if (doc.image && !doc.image.startsWith("http")) {
+    const base = process.env.BASE_URL ;
+    doc.image = `${base}/report/${doc.image}`;
   }
 };
-reportSchema.post("init", (doc) => {
-  setImageUrl(doc);
-});
-reportSchema.post("save", (doc) => {
-  setImageUrl(doc);
-});
+
+reportSchema.post("init", (doc) => setImageUrl(doc));
+reportSchema.post("save", (doc) => setImageUrl(doc));
 
 module.exports = mongoose.model("Report", reportSchema);

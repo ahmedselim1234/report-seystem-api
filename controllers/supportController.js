@@ -5,6 +5,7 @@ const Support = require("../models/Support");
 
 // control
 
+//ok
 exports.sendSupport = asyncHandler(async (req, res, next) => {
   const { supportId } = req.params;
   console.log(supportId)
@@ -20,6 +21,23 @@ exports.sendSupport = asyncHandler(async (req, res, next) => {
   return res.status(200).json({ message: "تم ارسال الدعم ", support });
 });
 
+//ok
+exports.deleteSupport = asyncHandler(async (req, res, next) => {
+  const { supportId } = req.params;
+  console.log(supportId)
+
+  const support = await Support.findByIdAndDelete(supportId);
+  console.log(support);
+
+  if (!support) {
+    return res.status(404).json({ message: " لايوجد طلب دعم  " });
+  }
+
+  return res.status(200).json({ message: "تم حذف الطلب  " });
+});
+
+ 
+ //ok
 exports.getAllSupports = asyncHandler(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
@@ -28,26 +46,23 @@ exports.getAllSupports = asyncHandler(async (req, res, next) => {
   const total = await Support.countDocuments();
 
   const supports = await Support.find()
-    .populate("requester", "name memberShipNumber") 
-    .populate("report", "locaion phone ")
-    .sort({ createdAt: -1 }) 
+    .populate("requester", "name memberShipNumber")
+    .populate("report", "locaion phone numberOfReport")
+    .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);
 
-  if (!supports || supports.length === 0) {
-    return res.status(404).json({ message: "لا يوجد طلبات دعم" });
-  }
 
-  res.status(200).json({
+  return res.status(200).json({
     page,
     limit,
     totalPages: Math.ceil(total / limit),
     totalItems: total,
-    data: supports,
+    data: supports || [],
   });
 });
 
-
+//ok
 //valunteer
 exports.orderSupport = asyncHandler(async (req, res, next) => {
   const { reportId } = req.params;

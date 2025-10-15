@@ -1,15 +1,19 @@
 const User = require("../models/User");
 const asyncHandler = require("express-async-handler");
 const Report = require("../models/Report");
+const Support = require("../models/Support");
 const reportPoints = require("../Data/data");
+const path = require("path");
+const fs = require("fs");
 
 // by control
+//ok
 
 exports.createReport = asyncHandler(async (req, res, next) => {
-  const { name, phone, reportType, locaion } = req.body;
+  const { name, phone, reportType, location } = req.body;
 
-  if (!name || !phone || !reportType || !locaion) {
-    return res.status(400).json({ message: "املأ كل البيانات " });
+  if (!name || !phone || !reportType || !location) {
+    return res.status(400).json({ message: "املأ كل البيانات" });
   }
 
   if (!reportPoints.hasOwnProperty(reportType)) {
@@ -23,7 +27,6 @@ exports.createReport = asyncHandler(async (req, res, next) => {
   }).format(date);
 
   let image = null;
-
   const points = reportPoints[reportType];
 
   if (req.file) {
@@ -32,12 +35,9 @@ exports.createReport = asyncHandler(async (req, res, next) => {
       .replace(/\s+/g, "-")
       .replace(/[^a-zA-Z0-9.\-_]/g, "");
     const filename = Date.now() + "-" + safeName;
-    const fs = require("fs");
-    const path = require("path");
     const filePath = path.join(__dirname, "../uploads/reports", filename);
 
     fs.writeFileSync(filePath, req.file.buffer);
-
     image = filename;
   }
 
@@ -45,15 +45,16 @@ exports.createReport = asyncHandler(async (req, res, next) => {
     name,
     phone,
     reportType,
-    locaion,
-    image, // هيبقى null لو مفيش صورة
+    location,
+    image,
     points,
     gregorianDate: gregorianArabic,
   });
 
-  return res.status(201).json({ report });
+  res.status(201).json({ report });
 });
 
+//ok
 exports.sureReport = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
@@ -69,10 +70,12 @@ exports.sureReport = asyncHandler(async (req, res, next) => {
 
   return res.status(200).json({ report });
 });
-
+//ok
 exports.cancelReport = asyncHandler(async (req, res, next) => {
   const { reason } = req.body;
   const { id } = req.params;
+
+  console.log(reason, id);
 
   if (!reason) {
     return res.status(400).json({ message: "عليك ادخال السبب" });
@@ -90,7 +93,7 @@ exports.cancelReport = asyncHandler(async (req, res, next) => {
 
   return res.status(200).json({ report });
 });
-
+//ok
 exports.deleteReport = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
@@ -102,12 +105,14 @@ exports.deleteReport = asyncHandler(async (req, res, next) => {
   return res.status(200).json({ message: "report deleted successfully" });
 });
 
+//ok
 exports.getReports = asyncHandler(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 20;
   const skip = (page - 1) * limit;
 
   const reports = await Report.find()
+    .populate("valunteers", "name phone memberId")
     .skip(skip)
     .limit(limit)
     .sort({ createdAt: -1 });
@@ -122,9 +127,11 @@ exports.getReports = asyncHandler(async (req, res, next) => {
   });
 });
 
+//ok
 exports.updateNumberOfValunteers = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   const { numberOfValunteers } = req.body;
+  console.log(id, numberOfValunteers);
 
   if (!numberOfValunteers) {
     return res
@@ -145,7 +152,7 @@ exports.updateNumberOfValunteers = asyncHandler(async (req, res, next) => {
     .status(200)
     .json({ message: "report updated successfully", report });
 });
-
+//ok
 exports.countsForControl = asyncHandler(async (req, res, next) => {
   const totalReports = await Report.countDocuments();
   const completedReports = await Report.find({ status: "مكتمل" });
@@ -160,16 +167,26 @@ exports.countsForControl = asyncHandler(async (req, res, next) => {
 
 //for valunteer
 
-exports.getSuredReports = asyncHandler(async (req, res, next) => {
+
+//ok
+exports.getAvalableReorts = asyncHandler(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 20;
   const skip = (page - 1) * limit;
-  const reports = await Report.find({ status: "معتمد" })
+  const reports = await Report.find({
+    $or: [
+      { status: "معتمد" },
+      {
+        status: "قيد التنفيذ",
+        $expr: { $lt: ["$shareValunteers", "$numberOfValunteers"] },
+      },
+    ],
+  }) .populate("valunteers", "name")
     .skip(skip)
     .limit(limit)
     .sort({ createdAt: -1 });
   console.log(reports);
-
+ 
   console.log(reports.length);
   const total = reports.length;
 
@@ -183,8 +200,8 @@ exports.getSuredReports = asyncHandler(async (req, res, next) => {
     totalReports: total,
     reports,
   });
-});
-
+}); 
+//ok
 exports.acceptReport = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   console.log(req.user.id);
@@ -201,7 +218,7 @@ exports.acceptReport = asyncHandler(async (req, res, next) => {
     report.valunteers.push(req.user.id);
     report.shareValunteers += 1;
   } else {
-    return res.status(400).json({ message: "المستخدم مشارك بالفعل" });
+    return res.status(400).json({ message: "انت مشارك بالفعل" });
   }
 
   const user = await User.findById(req.user.id);
@@ -221,7 +238,7 @@ exports.acceptReport = asyncHandler(async (req, res, next) => {
   report.save();
   return res.status(200).json({ message: "تم قبول البلاغ", report, user });
 });
-
+//ok
 exports.getMyReports = asyncHandler(async (req, res, next) => {
   const id = req.user.id;
   const page = parseInt(req.query.page) || 1;
@@ -229,18 +246,29 @@ exports.getMyReports = asyncHandler(async (req, res, next) => {
   const skip = (page - 1) * limit;
 
   const user = await User.findById(id).populate({
-    path: "myReports",
-    // select: "name status points createdAt",
-    options: {
-      skip: skip,
-      limit: limit,
-      sort: { createdAt: -1 },
-    },
+    path: "myReports.report",
+    populate: [
+      {
+        path: "valunteers",
+        select: "name ",
+      },
+      {
+        path: "closerOfReport",
+        select: "name ",
+      },
+    ],
   });
 
   if (!user) {
     return res.status(404).json({ message: "لا يوجد مستخدم" });
   }
+
+  // const support = await Support.findById({report:user})
+
+  // ✅ ترتيب + pagination
+  const sortedReports = user.myReports
+    .sort((a, b) => new Date(b.joinedAt) - new Date(a.joinedAt))
+    .slice(skip, skip + limit);
 
   const totalReports = user.myReports.length;
 
@@ -249,10 +277,11 @@ exports.getMyReports = asyncHandler(async (req, res, next) => {
     page,
     limit,
     totalReports,
-    myReports: user.myReports,
+    myReports: sortedReports,
   });
 });
 
+//ok
 exports.finishReport = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   const { noteOfClose } = req.body;
@@ -274,7 +303,7 @@ exports.finishReport = asyncHandler(async (req, res, next) => {
   return res.status(200).json({ message: "تم اكمال البلاغ", report });
 });
 
-// GET /reports/in-progress/:userId
+//ok
 exports.countsOfValunteer = asyncHandler(async (req, res, next) => {
   const userId = req.user.id;
   console.log(userId);
@@ -288,9 +317,21 @@ exports.countsOfValunteer = asyncHandler(async (req, res, next) => {
     valunteers: userId,
   });
 
+  const reports = await Report.find({
+    $or: [
+      { status: "معتمد" },
+      {
+        status: "قيد التنفيذ",
+        $expr: { $lt: ["$shareValunteers", "$numberOfValunteers"] },
+      },
+    ],
+  });
+
   res.status(200).json({
     status: "success",
     inProgressreports: inProgressreports.length,
     completedReports: completedReports.length,
+    availableReports: reports.length,
+    // totalPointsInMonth:
   });
 });
