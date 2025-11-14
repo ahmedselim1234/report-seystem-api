@@ -108,14 +108,15 @@ exports.deleteReport = asyncHandler(async (req, res, next) => {
 //ok
 exports.getReports = asyncHandler(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 20;
+  // const limit = parseInt(req.query.limit) || 20;
+  const limit = parseInt(req.query.limit) ||20;
   const skip = (page - 1) * limit;
 
   const reports = await Report.find()
-    .populate("valunteers", "name phone memberId")
-    .skip(skip)
-    .limit(limit)
-    .sort({ createdAt: -1 });
+  .sort({ createdAt: -1 })
+  .skip(skip)
+  .limit(limit)
+  .populate("valunteers", "name phone memberId")
 
   const total = await Report.countDocuments();
 
@@ -169,10 +170,23 @@ exports.countsForControl = asyncHandler(async (req, res, next) => {
 
 
 //ok
+
 exports.getAvalableReorts = asyncHandler(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 20;
   const skip = (page - 1) * limit;
+
+  const totalReports = await Report.countDocuments({
+    $or: [
+      { status: "معتمد" },
+      {
+        status: "قيد التنفيذ",
+        $expr: { $lt: ["$shareValunteers", "$numberOfValunteers"] },
+      },
+    ],
+  });
+
+
   const reports = await Report.find({
     $or: [
       { status: "معتمد" },
@@ -181,26 +195,23 @@ exports.getAvalableReorts = asyncHandler(async (req, res, next) => {
         $expr: { $lt: ["$shareValunteers", "$numberOfValunteers"] },
       },
     ],
-  }) .populate("valunteers", "name")
+  })
+    .populate("valunteers", "name")
     .skip(skip)
     .limit(limit)
     .sort({ createdAt: -1 });
-  console.log(reports);
- 
-  console.log(reports.length);
-  const total = reports.length;
 
-  if (!reports) {
-    return res.status(404).json({ message: " لا يوجد بلاغات" });
-  }
+
+  const totalPages = Math.ceil(totalReports / limit);
 
   res.status(200).json({
     page,
-    totalPages: Math.ceil(total / limit),
-    totalReports: total,
+    totalPages,
+    totalReports,
     reports,
   });
-}); 
+});
+
 //ok
 exports.acceptReport = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
@@ -263,14 +274,13 @@ exports.getMyReports = asyncHandler(async (req, res, next) => {
     return res.status(404).json({ message: "لا يوجد مستخدم" });
   }
 
-  // const support = await Support.findById({report:user})
-
   // ✅ ترتيب + pagination
   const sortedReports = user.myReports
     .sort((a, b) => new Date(b.joinedAt) - new Date(a.joinedAt))
     .slice(skip, skip + limit);
 
   const totalReports = user.myReports.length;
+    const totalPages = Math.ceil(totalReports / limit);
 
   res.status(200).json({
     success: true,
@@ -278,6 +288,7 @@ exports.getMyReports = asyncHandler(async (req, res, next) => {
     limit,
     totalReports,
     myReports: sortedReports,
+    totalPages
   });
 });
 

@@ -45,17 +45,48 @@ const reportSchema = new mongoose.Schema(
 
     gregorianDate: { type: String },
     hijriDate: { type: String },
-    createdAt: { type: Date, default: Date.now() },
+    // createdAt: { type: Date, default: Date.now() },
   },
   { timestamps: true }
 );
 
+// reportSchema.pre("save", function (next) {
+//   if (!this.hijriDate) {
+//     this.hijriDate = moment(this.createdAt).format("iYYYY/iMM/iDD HH:mm");
+//   }
+//   next();
+// });
 reportSchema.pre("save", function (next) {
   if (!this.hijriDate) {
-    this.hijriDate = moment(this.createdAt).format("iYYYY/iMM/iDD HH:mm");
+    const m = moment(this.createdAt);
+
+    // أسماء أيام الأسبوع بالعربي
+    const days = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+
+    // أسماء الشهور الهجرية بالعربي
+    const hijriMonths = [
+      "محرم","صفر","ربيع الأول","ربيع الثاني",
+      "جمادى الأولى","جمادى الآخرة","رجب",
+      "شعبان","رمضان","شوال","ذو القعدة","ذو الحجة"
+    ];
+
+    const dayName = days[m.day()];
+    const hijriDay = m.iDate();            // اليوم
+    const hijriMonth = hijriMonths[m.iMonth()]; // اسم الشهر
+    const hijriYear = m.iYear();           // السنة
+
+    // وقت بصيغة 12 ساعة مع (ص/م)
+    const hour24 = m.hour();
+    const hour12 = hour24 % 12 || 12;
+    const minute = String(m.minute()).padStart(2, "0");
+    const suffix = hour24 < 12 ? "ص" : "م";
+
+    this.hijriDate = `${dayName}، ${hijriDay} ${hijriMonth} ${hijriYear} هـ في ${hour12}:${minute} ${suffix}`;
   }
+
   next();
 });
+
 
 reportSchema.pre("save", async function (next) {
   if (!this.numberOfReport) {
@@ -68,19 +99,6 @@ reportSchema.pre("save", async function (next) {
   }
   next();
 });
-
-// const setImageUrl = (doc) => {
-//   if (doc.image) {
-//     const imageUrl = `${process.env.BASE_URL}/report/${doc.image}`;
-//     doc.image = imageUrl;
-//   }
-// };
-// reportSchema.post("init", (doc) => {
-//   setImageUrl(doc);
-// });
-// reportSchema.post("save", (doc) => {
-//   setImageUrl(doc);
-// });
 
 const setImageUrl = (doc) => {
   if (doc.image && !doc.image.startsWith("http")) {

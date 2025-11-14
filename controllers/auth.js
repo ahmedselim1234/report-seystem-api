@@ -39,6 +39,18 @@ exports.login = asyncHandler(async (req, res, next) => {
   }
 });
 
+// exports.logout = (req, res, next) => {
+//   res.clearCookie("accessToken", {
+//     HttpOnly: true,
+//     sameSite: "none",
+//      path: "/",
+//   });
+//   res.json({ message: "logged out" });
+// };
+
+
+
+
 exports.logout = (req, res, next) => {
   res.clearCookie("accessToken", {
     HttpOnly: true,

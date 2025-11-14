@@ -26,8 +26,8 @@ const userSchema = new mongoose.Schema(
     identityNumber: {
       type: Number,
       minlength: [10, "رقم هوية غير صالح"],
-      unique: true,
-      required: true,
+      // unique: true,
+      // sparse: true,
     },
     totalPointsInMonth: {
       type: Number,
@@ -99,12 +99,6 @@ userSchema.methods.addPoints = async function (points) {
   if (this.currentMonth !== month || this.currentYear !== year) {
     this.totalPointsInMonth = 0;
     this.currentMonth = month;
-  }
-
-  // reset points لو سنة جديدة
-  if (this.currentYear !== year) {
-    this.totalPointsInYear = 0;
-    this.currentYear = year;
   }
 
   // بعد الـ reset نزود النقاط

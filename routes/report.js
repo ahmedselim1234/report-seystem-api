@@ -2,6 +2,7 @@ const express = require("express");
 const requireAuth = require("../middleware/isAuth");
 const roles = require("../middleware/role");
 const upload = require("../middleware/uploadImage");
+// const {sanitizeRequest} = require("../middleware/security");
 
 const router = express.Router();
 
@@ -14,6 +15,7 @@ router
     requireAuth,
     roles.allowedTo("control"),
     upload.uploadOneImage("image"),
+    //  sanitizeRequest,
     reportController.createReport
   );
 

@@ -31,6 +31,13 @@ router
     roles.allowedTo("control"),
     userController.deleteValunteer
   );
+router
+  .route("/delete-control/:id")
+  .delete(
+    requireAuth,
+    roles.allowedTo("control"),
+    userController.deleteControl
+  );
 
 router
   .route("/create-control")
@@ -44,6 +51,15 @@ router
     roles.allowedTo("control"),
     userController.getAllValunteers
   );
+  
+router
+  .route("/all-controls")
+  .get(
+    requireAuth,
+    roles.allowedTo("control"),
+    userController.getAllControles
+  );
+
 router
   .route("/valunteer-data")
   .get(

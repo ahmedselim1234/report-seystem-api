@@ -10,14 +10,16 @@ const { ApiError, HandleError } = require("./middleware/errorHandler");
 const cron = require("node-cron");
 const fs = require("fs");
 
+
 const app = express();
 const port = process.env.PORT || 8000;
+
 
 app.use("/report", express.static(path.join(__dirname, "uploads/reports")));
 
 //setup to delete images after specefic  time
 const uploadsDir = path.join(__dirname, "uploads/reports");
-const IMAGE_EXPIRY_MINUTES = 1 * 60 * 24 * 30 * 6; //6 months
+const IMAGE_EXPIRY_MINUTES = 1 * 60 * 24 * 30 * 6; 
 
 // cron.schedule("* * * * *", () => {
 //   console.log("⏰ Checking for expired images...");
@@ -37,8 +39,6 @@ const IMAGE_EXPIRY_MINUTES = 1 * 60 * 24 * 30 * 6; //6 months
 // });
 
 //security
-
-
 
 const applySecurity = require("./middleware/security");
 app.use(cookieParser());

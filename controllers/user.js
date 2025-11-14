@@ -20,6 +20,10 @@ exports.createValunteer = asyncHandler(async (req, res, next) => {
   }
 
   //sure if identityNumber exsit
+  const exaistUser = await User.findOne({ identityNumber: identityNumber });
+  if (exaistUser) {
+    return res.status(400).json({ message: "رقم هويه موجود بالفعل" });
+  }
 
   if (identityNumber.length !== 10) {
     return res.status(400).json({ message: "رقم هويه غير صالح" });
@@ -50,11 +54,11 @@ exports.updateValunteer = asyncHandler(async (req, res, next) => {
     .json({ message: "تم التعديل بنجاح ", data: valunteer });
 });
 
-
 //ok
 exports.getAllValunteersForExport = asyncHandler(async (req, res) => {
-  const valunteers = await User.find({ role: "valunteer" })
-    .select("-password -__v");
+  const valunteers = await User.find({ role: "valunteer" }).select(
+    "-password -__v"
+  );
 
   res.status(200).json({
     total: valunteers.length,
@@ -64,9 +68,9 @@ exports.getAllValunteersForExport = asyncHandler(async (req, res) => {
 
 //ok
 exports.getAllValunteers = asyncHandler(async (req, res, next) => {
-  const page = parseInt(req.query.page) || 1;   
-  const limit = parseInt(req.query.limit) || 10; 
-  const skip = (page - 1) * limit;               
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
 
   // count total volunteers
   const total = await User.countDocuments({ role: "valunteer" });
@@ -107,26 +111,90 @@ exports.deleteValunteer = asyncHandler(async (req, res, next) => {
   });
 });
 
-
 exports.createControl = asyncHandler(async (req, res, next) => {
-  const { name, password, identityNumber } = req.body;
+  const { name, password, firstControl } = req.body;
 
-  if (req.user.firstControl === true) {
-    if (!name || !password || !identityNumber) {
-      return res.status(400).json({ message: "املاء كل البيانات " });
-    }
-
-    if (identityNumber.length !== 10) {
-      return res.status(400).json({ message: "رقم هويه غير صالح" });
-    }
-
-    console.log(req.user);
-
-    const user = await User.create(req.body);
-
-    return res.status(201).json({ data: user });
+  if (req.user.firstControl !== true) {
+    return res.status(401).json({ message: "غير مسموح" });
   }
-  return res.status(401).json({ message: "غير مسموح " });
+
+  if (!name || !password) {
+    return res.status(400).json({ message: "املأ كل البيانات المطلوبة" });
+  }
+
+  const exaistUser = await User.findOne({ name });
+  if (exaistUser) {
+    return res.status(400).json({ message: "اسم المستخدم موجود بالفعل " });
+  }
+
+  try {
+    const newControl = await User.create({
+      name,
+      password,
+
+      role: "control",
+      firstControl: firstControl || false,
+    });
+
+    return res.status(201).json({
+      message: "تم إنشاء حساب الكنترول بنجاح",
+      data: newControl,
+    });
+  } catch (err) {
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyValue)[0];
+      return res.status(400).json({
+        message: `القيمة في الحقل (${field}) مستخدمة بالفعل، برجاء إدخال قيمة مختلفة`,
+      });
+    }
+
+    console.error("❌ Server Error:", err);
+    return res.status(500).json({ message: "حدث خطأ في السيرفر" });
+  }
+});
+
+exports.getAllControles = asyncHandler(async (req, res, next) => {
+
+  const currentUserId = req.user.id;
+
+  const users = await User.find({
+    role: "control",
+    _id: { $ne: currentUserId }, 
+  })
+    .populate("myReports.report")
+    .select(
+      "-password -__v -totalPointsInMonth -totalPointsInYear -currentMonth -currentYear -myReports"
+    );
+
+  if (!users.length) {
+    return res.status(404).json({
+      status: "fail",
+      message: "لا يوجد عمال في الكنترول",
+    });
+  }
+
+  res.status(200).json({
+    status: "success",
+    results: users.length,
+    data: users,
+  });
+});
+
+
+exports.deleteControl = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+
+  const user = await User.findByIdAndDelete(id);
+
+  if (!user) {
+    return res.status(404).json({
+      message: "غير موجود",
+    });
+  }
+
+  res.status(200).json({
+    message: "تم حذف المستخدم",
+  });
 });
 
 exports.getSpecificValunteer = asyncHandler(async (req, res, next) => {

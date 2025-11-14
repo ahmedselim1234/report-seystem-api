@@ -6,7 +6,7 @@ const requireAuth = asyncHandler(async (req, res, next) => {
   // check if token exists
   const authheader = req.headers.authorization || req.headers.Authorization;
   if (!authheader || !authheader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "unAuth" });
+    return res.status(401).json({ message: "غير مسموح" });
   }
 
   const token = authheader.split(" ")[1];
@@ -16,7 +16,7 @@ const requireAuth = asyncHandler(async (req, res, next) => {
   // check if user exists
   const user = await User.findById(decoded.userInfo.id);
   if (!user) {
-    return res.status(401).json({ message: "unAuth user" });
+    return res.status(401).json({ message: "غير مسموح لهذا المستخدم" });
   }
 
   req.user = decoded.userInfo;

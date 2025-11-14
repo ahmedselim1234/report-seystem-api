@@ -29,7 +29,7 @@ exports.createValunteer = [
     }),
 
   ,
-  check("bloodType").notEmpty().withMessage("bloodType required!"),
+  check("bloodType").notEmpty().withMessage("فصيله الدم مطلوبه"),
 
   check("phone")
     .notEmpty()
@@ -37,7 +37,7 @@ exports.createValunteer = [
     .isMobilePhone(["ar-SA"])
     .withMessage(" ادخل رقم هاتف صالح"),
 
-  check("region").notEmpty().withMessage("region required!"),
+  check("region").notEmpty().withMessage("المنطقه مطلوبه"),
 
   check("birthDate")
     .notEmpty()
